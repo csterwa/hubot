@@ -1,34 +1,43 @@
 _ = require 'lodash'
-Q = require('q')
+Q = require 'q'
+util = require 'util'
 
-loadRecentMessages = (http, token, channel, robotId, count) ->
-  count = count || 50
-  url = "https://slack.com/api/channels.history?" +
-    "token=#{token}&channel=#{channel}&count=#{count}"
-  deferred = Q.defer()
-  http(url).get() (err, res, body) ->
-    if err
-      deferred.reject "I don't know what I've said lately: #{err}"
-    else
-      messages = JSON.parse(body).messages
-      myMessages = _(messages)
-        .filter((msg) -> msg.user is robotId)
-        .sortBy('ts')
-        .reverse()
-        .value()
-      deferred.resolve(myMessages)
-  return deferred.promise
+class Client
+  constructor: (robot, msg) ->
+    @http = robot.http
+    @token = msg.robot.adapter.client.token
+    @channel = msg.message.rawMessage.channel
+    @robotId = msg.robot.adapter.client.self.id
+    @userId = msg.message.user.id
 
-deleteMessage = (http, token, channel, message) ->
-  url = "https://slack.com/api/chat.delete?" +
-    "token=#{token}&channel=#{channel}&ts=#{message.ts}"
-  deferred = Q.defer()
-  http(url).get() (err, res, body) ->
-    if err
-      deferred.reject "I couldn't delete my message: #{err}"
-    else
-      deferred.resolve()
-  return deferred.promise
+  loadRecentMessages: (count) ->
+    count = count || 50
+    url = "https://slack.com/api/channels.history?" +
+      "token=#{@token}&channel=#{@channel}&count=#{count}"
+    deferred = Q.defer()
+    @http(url).get() (err, res, body) =>
+      if err
+        deferred.reject "I don't know what I've said lately: #{err}"
+      else
+        messages = JSON.parse(body).messages
+        myMessages = _(messages)
+          .filter((msg) => msg.user is @robotId)
+          .sortBy('ts')
+          .reverse()
+          .value()
+        deferred.resolve(myMessages)
+    return deferred.promise
+
+  deleteMessage: (message) ->
+    url = "https://slack.com/api/chat.delete?" +
+      "token=#{@token}&channel=#{@channel}&ts=#{message.ts}"
+    deferred = Q.defer()
+    @http(url).get() (err, res, body) =>
+      if err
+        deferred.reject "I couldn't delete my message: #{err}"
+      else
+        deferred.resolve()
+    return deferred.promise
 
 selectMessage = (messages, age) ->
   deferred = Q.defer()
@@ -42,15 +51,12 @@ module.exports = (robot) ->
 
   robot.respond /delete(?:\s+(\d+)\s+ago)?/, (msg) ->
     age = (msg.match[1] || 1) - 1
-    token = msg.robot.adapter.client.token
-    channel = msg.message.rawMessage.channel
-    robotId = msg.robot.adapter.client.self.id
-    you = msg.message.user.id
-    # console.log {age: age, token: token, channel: channel, robotId: robotId, you: you}
+    client = new Client robot, msg
+    console.log util.inspect client
 
-    loadRecentMessages(robot.http, token, channel, robotId)
+    client.loadRecentMessages()
       .then((messages) -> selectMessage messages, age)
-      .then((message) -> deleteMessage robot.http, token, channel, message)
+      .then((message) -> client.deleteMessage message)
       .then(() -> msg.reply "Whoops, sorry about that!")
       .catch((err) -> msg.reply err)
       .done()
