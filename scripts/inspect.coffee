@@ -11,11 +11,11 @@ inspect = (obj, depth) ->
 
 module.exports = (robot) ->
 
-  robot.respond /inspect (\S+)(?:\s+(\d+))?/, (msg) ->
-    id = msg.match[1]
-    depth = msg.match[2]
-    console.log 'id = ', id, ' depth = ', depth
-    if (id is 'msg')
-      msg.send inspect msg, depth
-    else
-      msg.send inspect lookup(msg, msg.match[1]), depth
+  # robot.respond /inspect (\S+)(?:\s+(\d+))?/, (msg) ->
+  #   id = msg.match[1]
+  #   depth = msg.match[2]
+  #   console.log 'id = ', id, ' depth = ', depth
+  #   if (id is 'msg')
+  #     msg.send inspect msg, depth
+  #   else
+  #     msg.send inspect lookup(msg, msg.match[1]), depth
