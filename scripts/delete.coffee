@@ -2,14 +2,11 @@ _ = require 'lodash'
 Q = require('q')
 
 loadRecentMessages = (http, token, channel, robotId, count) ->
-  console.log "loadRecentMessages"
   count = count || 50
   url = "https://slack.com/api/channels.history?" +
     "token=#{token}&channel=#{channel}&count=#{count}"
   deferred = Q.defer()
   http(url).get() (err, res, body) ->
-    console.log "Received response from #{url}"
-    console.log "err =", err
     if err
       deferred.reject "I don't know what I've said lately: #{err}"
     else
@@ -19,19 +16,14 @@ loadRecentMessages = (http, token, channel, robotId, count) ->
         .sortBy('ts')
         .reverse()
         .value()
-      console.log 'myMessages =', myMessages
-      console.log 'deferred =', deferred
       deferred.resolve(myMessages)
   return deferred.promise
 
 deleteMessage = (http, token, channel, message) ->
-  console.log "deleteMessage"
   url = "https://slack.com/api/chat.delete?" +
     "token=#{token}&channel=#{channel}&ts=#{message.ts}"
   deferred = Q.defer()
   http(url).get() (err, res, body) ->
-    console.log "Received response from #{url}"
-    console.log "err =", err
     if err
       deferred.reject "I couldn't delete my message: #{err}"
     else
@@ -39,7 +31,6 @@ deleteMessage = (http, token, channel, message) ->
   return deferred.promise
 
 selectMessage = (messages, age) ->
-  console.log "selectMessage"
   deferred = Q.defer()
   if age < messages.length
     deferred.resolve(messages[age])
