@@ -58,8 +58,8 @@ module.exports = (robot) ->
     # console.log {age: age, token: token, channel: channel, robotId: robotId, you: you}
 
     loadRecentMessages(robot.http, token, channel, robotId)
-      .then (messages) -> selectMessage messages, age
-      .then (message) -> deleteMessage robot.http, token, channel, message
-      .then () -> msg.reply "Whoops, sorry about that!"
-      .catch (err) -> msg.reply err
+      .then((messages) -> selectMessage messages, age)
+      .then((message) -> deleteMessage robot.http, token, channel, message)
+      .then(() -> msg.reply "Whoops, sorry about that!")
+      .catch((err) -> msg.reply err)
       .done()
