@@ -1,3 +1,11 @@
+# Commands:
+#   hubot delete [yourself] [n] [[messages] ago] - delete nth-to-last message
+#   hubot redact [yourself] [n] [[messages] ago] - redact nth-to-last message
+#   hubot rot13 [yourself] [n] [[messages] ago] - apply rot13 cipher to nth-to-last message
+#
+# Author:
+#   nstetich
+
 _ = require 'lodash'
 Q = require 'q'
 util = require 'util'
@@ -12,9 +20,14 @@ class Client
 
   loadRecentMessages: (count) ->
     count = count || 50
-    url = "https://slack.com/api/channels.history?" +
-      "token=#{@token}&channel=#{@channel}&count=#{count}"
     deferred = Q.defer()
+    endpoint = switch @channel[0]
+      when 'C' then 'channels.history'
+      when 'G' then 'groups.history'
+      when 'D' then 'im.history'
+      else deferred.reject "Unknown channel type for channel #{@channel}"
+    url = "https://slack.com/api/#{endpoint}?" +
+      "token=#{@token}&channel=#{@channel}&count=#{count}"
     @http(url).get() (err, res, body) =>
       if err
         deferred.reject "I don't know what I've said lately: #{err}"
@@ -85,7 +98,7 @@ module.exports = (robot) ->
       .then((messages) -> selectMessage messages, age)
       .then((message) -> client.deleteMessage message)
       .then(() -> msg.reply "Whoops, sorry about that!")
-      .catch ((err) -> console.log util.inspect err; msg.reply err)
+      .catch((err) -> console.log util.inspect(err); msg.reply err)
       .done()
 
   robot.respond /rot13(?: yourself)?(?: (\d+))?(?:(?: messages?) ago)?/, (msg) ->
@@ -97,7 +110,7 @@ module.exports = (robot) ->
       .then((message) -> client.updateMessage message, (text) ->
         rot13.encode text)
       .then(() -> msg.reply "Your secret is safe with me.")
-      .catch((err) -> console.log util.inspect err; msg.reply err)
+      .catch((err) -> console.log util.inspect(err); msg.reply err)
       .done()
 
   robot.respond /redact(?: yourself)?(?: (\d+))?(?:(?: messages?) ago)?/, (msg) ->
@@ -108,5 +121,5 @@ module.exports = (robot) ->
       .then((messages) -> selectMessage messages, age)
       .then((message) -> client.updateMessage message, () -> '[REDACTED]')
       .then(() -> msg.reply "My lips are sealed.")
-      .catch((err) -> console.log util.inspect err; msg.reply err)
+      .catch((err) -> console.log util.inspect(err); msg.reply err)
       .done()
