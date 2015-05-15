@@ -98,7 +98,7 @@ module.exports = (robot) ->
       .then((messages) -> selectMessage messages, age)
       .then((message) -> client.deleteMessage message)
       .then(() -> msg.reply "Whoops, sorry about that!")
-      .catch ((err) -> console.log util.inspect err; msg.reply err)
+      .catch((err) -> console.log util.inspect(err); msg.reply err)
       .done()
 
   robot.respond /rot13(?: yourself)?(?: (\d+))?(?:(?: messages?) ago)?/, (msg) ->
@@ -110,7 +110,7 @@ module.exports = (robot) ->
       .then((message) -> client.updateMessage message, (text) ->
         rot13.encode text)
       .then(() -> msg.reply "Your secret is safe with me.")
-      .catch((err) -> console.log util.inspect err; msg.reply err)
+      .catch((err) -> console.log util.inspect(err); msg.reply err)
       .done()
 
   robot.respond /redact(?: yourself)?(?: (\d+))?(?:(?: messages?) ago)?/, (msg) ->
@@ -121,5 +121,5 @@ module.exports = (robot) ->
       .then((messages) -> selectMessage messages, age)
       .then((message) -> client.updateMessage message, () -> '[REDACTED]')
       .then(() -> msg.reply "My lips are sealed.")
-      .catch((err) -> console.log util.inspect err; msg.reply err)
+      .catch((err) -> console.log util.inspect(err); msg.reply err)
       .done()
