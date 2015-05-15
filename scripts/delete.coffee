@@ -20,9 +20,14 @@ class Client
 
   loadRecentMessages: (count) ->
     count = count || 50
-    url = "https://slack.com/api/channels.history?" +
-      "token=#{@token}&channel=#{@channel}&count=#{count}"
     deferred = Q.defer()
+    endpoint = switch @channel[0]
+      when 'C' then 'channels.history'
+      when 'G' then 'groups.history'
+      when 'D' then 'im.history'
+      else deferred.reject "Unknown channel type for channel #{@channel}"
+    url = "https://slack.com/api/#{endpoint}?" +
+      "token=#{@token}&channel=#{@channel}&count=#{count}"
     @http(url).get() (err, res, body) =>
       if err
         deferred.reject "I don't know what I've said lately: #{err}"
