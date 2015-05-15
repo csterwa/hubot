@@ -1,3 +1,11 @@
+# Commands:
+#   hubot delete [yourself] [n] [[messages] ago] - delete nth-to-last message
+#   hubot redact [yourself] [n] [[messages] ago] - redact nth-to-last message
+#   hubot rot13 [yourself] [n] [[messages] ago] - apply rot13 cipher to nth-to-last message
+#
+# Author:
+#   nstetich
+
 _ = require 'lodash'
 Q = require 'q'
 util = require 'util'
